@@ -1,4 +1,5 @@
 using System;
+using System.Threading.Tasks;
 using Flowers.Design;
 using Flowers.Model;
 using GalaSoft.MvvmLight;
@@ -12,10 +13,13 @@ namespace Flowers.ViewModel
     {
         private readonly IFlowersService _flowerService;
 
-        private RelayCommand _addCommentCommand;
         private bool _isSaving;
-        private RelayCommand<string> _saveCommentCommand;
-        private RelayCommand _saveFlowerCommand;
+
+        public RelayCommand AddCommentCommand { get; private set; }
+
+        public RelayCommand SaveFlowerCommand { get; private set; }
+
+        public RelayCommand<string> SaveCommentCommand { get; private set; }
 
         public FlowerViewModel(IFlowersService flowerService, Flower model)
         {
@@ -29,6 +33,12 @@ namespace Flowers.ViewModel
                     SaveFlowerCommand.RaiseCanExecuteChanged();
                 }
             };
+
+            AddCommentCommand = new RelayCommand(Navigate);
+            SaveFlowerCommand = new RelayCommand(async () => await SaveFlower(),
+                                                 () => !IsSaving && Model.HasChanges);
+            SaveCommentCommand = new RelayCommand<string>(async text => await SaveComment(text),
+                                                          text => !string.IsNullOrEmpty(text) && !IsSaving);
         }
 
 #if DEBUG
@@ -43,20 +53,6 @@ namespace Flowers.ViewModel
             }
         }
 #endif
-
-        public RelayCommand AddCommentCommand
-        {
-            get
-            {
-                return _addCommentCommand
-                       ?? (_addCommentCommand = new RelayCommand(
-                           () =>
-                           {
-                               var nav = ServiceLocator.Current.GetInstance<INavigationService>();
-                               nav.NavigateTo(ViewModelLocator.AddCommentPageKey, this);
-                           }));
-            }
-        }
 
         public string ImageFileName
         {
@@ -83,72 +79,56 @@ namespace Flowers.ViewModel
             }
         }
 
-        public RelayCommand SaveFlowerCommand
+        public async Task SaveFlower()
         {
-            get
+            IsSaving = true;
+            var result = await _flowerService.Save(Model);
+
+            if (!result)
             {
-                return _saveFlowerCommand
-                    ?? (_saveFlowerCommand = new RelayCommand(
-                    async () =>
-                    {
-                        IsSaving = true;
-                        var result = await _flowerService.Save(Model);
-
-                        if (!result)
-                        {
-                            // Handle error when saving
-                            var dialog = ServiceLocator.Current.GetInstance<IDialogService>();
-                            await
-                                dialog.ShowError(
-                                    "Error when saving, the change was not saved",
-                                    "Error",
-                                    "OK",
-                                    null);
-                        }
-
-                        IsSaving = false;
-                    },
-                    () => !IsSaving && Model.HasChanges));
+                // Handle error when saving
+                var dialog = ServiceLocator.Current.GetInstance<IDialogService>();
+                await dialog.ShowError("Error when saving, the change was not saved", 
+                                       "Error",
+                                       "OK",
+                                       null);
             }
+
+            IsSaving = false;
         }
 
-        public RelayCommand<string> SaveCommentCommand
+        public async Task SaveComment(string text)
         {
-            get
+            IsSaving = true;
+            Model.Comments.Add(
+                new Comment
+                {
+                    Id = Guid.NewGuid().ToString(),
+                    InputDate = DateTime.Now,
+                    Text = text
+                });
+
+            var result = await _flowerService.Save(Model);
+
+            if (!result)
             {
-                return _saveCommentCommand
-                       ?? (_saveCommentCommand = new RelayCommand<string>(
-                           async text =>
-                           {
-                               IsSaving = true;
-                               Model.Comments.Add(
-                                   new Comment
-                                   {
-                                       Id = Guid.NewGuid().ToString(),
-                                       InputDate = DateTime.Now,
-                                       Text = text
-                                   });
-
-                               var result = await _flowerService.Save(Model);
-
-                               if (!result)
-                               {
-                                   // Handle error when saving
-                                   var dialog = ServiceLocator.Current.GetInstance<IDialogService>();
-                                   await
-                                       dialog.ShowError(
-                                           "Error when saving, your comment was not saved",
-                                           "Error",
-                                           "OK",
-                                           null);
-                               }
-
-                               var nav = ServiceLocator.Current.GetInstance<INavigationService>();
-                               nav.GoBack();
-                               IsSaving = false;
-                           },
-                           text => !string.IsNullOrEmpty(text) && !IsSaving));
+                // Handle error when saving
+                var dialog = ServiceLocator.Current.GetInstance<IDialogService>();
+                await dialog.ShowError("Error when saving, your comment was not saved",
+                                       "Error",
+                                       "OK",
+                                       null);
             }
+
+            var nav = ServiceLocator.Current.GetInstance<INavigationService>();
+            nav.GoBack();
+            IsSaving = false;
+        }
+
+        public void Navigate()
+        {
+            var nav = ServiceLocator.Current.GetInstance<INavigationService>();
+            nav.NavigateTo(ViewModelLocator.AddCommentPageKey, this);
         }
     }
 }

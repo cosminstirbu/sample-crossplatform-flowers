@@ -12,68 +12,77 @@ namespace Flowers.Model
         private const string RequestUrl =
             "http://www.galasoft.ch/labs/Flowers/FlowersService.ashx?{0}={1}&{2}={3}&ticks={4}";
 
+        private HttpClient _httpClient;
+        private IClock _clock;
+
+        public FlowersService()
+        {
+            _httpClient = new HttpClient();
+            _clock = new Clock();
+        }
+
+        public FlowersService(HttpClient httpClient, IClock clock)
+        {
+            _httpClient = httpClient;
+            _clock = clock;
+        }
+
         public async Task<IList<Flower>> Refresh()
         {
-            using (var client = new HttpClient())
+            var url = string.Format(
+                RequestUrl,
+                WebConstants.AuthenticationKey,
+                WebConstants.AuthenticationId,
+                WebConstants.ActionKey,
+                WebConstants.ActionGet,
+                DateTime.Now.Ticks);
+
+            var json = await _httpClient.GetStringAsync(url);
+
+            var result = JsonConvert.DeserializeObject<FlowersResult>(json);
+
+            foreach (var model in result.Data)
             {
-                var url = string.Format(
-                    RequestUrl,
-                    WebConstants.AuthenticationKey,
-                    WebConstants.AuthenticationId,
-                    WebConstants.ActionKey,
-                    WebConstants.ActionGet,
-                    DateTime.Now.Ticks);
-
-                var json = await client.GetStringAsync(url);
-
-                var result = JsonConvert.DeserializeObject<FlowersResult>(json);
-
-                foreach (var model in result.Data)
-                {
-                    model.HasChanges = false;
-                }
-
-                return result.Data;
+                model.HasChanges = false;
             }
+
+            return result.Data;
         }
 
         public async Task<bool> Save(Flower flower)
         {
-            using (var client = new HttpClient())
-            {
-                var url = string.Format(
-                    RequestUrl,
-                    WebConstants.AuthenticationKey,
-                    WebConstants.AuthenticationId,
-                    WebConstants.ActionKey,
-                    WebConstants.ActionSave,
-                    DateTime.Now.Ticks);
+            var url = string.Format(
+                RequestUrl,
+                WebConstants.AuthenticationKey,
+                WebConstants.AuthenticationId,
+                WebConstants.ActionKey,
+                WebConstants.ActionSave,
+                _clock.Now().Ticks);
 
-                var json = JsonConvert.SerializeObject(flower);
+            var json = JsonConvert.SerializeObject(flower);
 
-                var content = new FormUrlEncodedContent(
-                    new[]
-                    {
-                        new KeyValuePair<string, string>("flower", json)
-                    });
-
-                try
+            var content = new FormUrlEncodedContent(
+                new[]
                 {
-                    var response = await client.PostAsync(url, content);
-                    if (response.StatusCode == HttpStatusCode.OK)
-                    {
-                        flower.HasChanges = false;
-                        return true;
-                    }
-                    else
-                    {
-                        return false;
-                    }
+                    new KeyValuePair<string, string>("flower", json)
+                });
+
+            try
+            {
+                var response = await _httpClient.PostAsync(url, content);
+                if (response.StatusCode == HttpStatusCode.OK)
+                {
+                    flower.HasChanges = false;
+                    return true;
                 }
-                catch
+                else
                 {
                     return false;
                 }
+            }
+            catch
+            {
+                return false;
             }
         }
     }
