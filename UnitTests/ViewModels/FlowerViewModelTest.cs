@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Net.Http;
+using System.Collections.Generic;
 
 using Flowers.ViewModel;
 using Flowers.Model;
@@ -11,6 +12,7 @@ using Microsoft.Practices.ServiceLocation;
 using FluentAssertions;
 using GalaSoft.MvvmLight.Ioc;
 using UnitTests.Http;
+using Flowers.Api;
 
 namespace UnitTests.ViewModels
 {
@@ -22,7 +24,7 @@ namespace UnitTests.ViewModels
         {
             ServiceLocator.SetLocatorProvider(() => SimpleIoc.Default);
 
-            SimpleIoc.Default.Register(()=> Substitute.For<INavigationService>());
+            SimpleIoc.Default.Register(() => Substitute.For<INavigationService>());
             SimpleIoc.Default.Register(() => Substitute.For<IDialogService>());
             SimpleIoc.Default.Register(() => Substitute.For<IClock>());
         }
@@ -53,7 +55,7 @@ namespace UnitTests.ViewModels
             // Then
             var request = httpServer.RequestsQueue.Peek().HttpRequest;
 
-            request.RequestUri.AbsoluteUri.Should().Be("http://www.galasoft.ch/labs/Flowers/FlowersService.ashx?key=CB6344C121DB4099B484008370211418&action=save&ticks=123456789");
+            request.RequestUri.AbsoluteUri.Should().Be("http://www.galasoft.ch/labs/Flowers/FlowersService.ashx?action=save&ticks=123456789&key=CB6344C121DB4099B484008370211418");
             request.Method.Should().Be(HttpMethod.Post);
             request.Content.ReadAsStringAsync().Result.Should().Contain(expectedEncodedComment);
         }
@@ -176,7 +178,17 @@ namespace UnitTests.ViewModels
             flower = flower ?? GivenAFlower();
             clock = clock ?? GivenAClock();
 
-            return new FlowerViewModel(new FlowersService(new HttpClient(server), clock), flower);
+            var apiClient = new ApiClient(new HttpClient(server)
+            {
+                BaseAddress = new Uri("http://www.galasoft.ch/")
+            });
+
+            apiClient.DefaultQueryParameters = new Dictionary<string, string>
+            {
+                { WebConstants.AuthenticationKey, WebConstants.AuthenticationId }
+            };
+
+            return new FlowerViewModel(new FlowersService(apiClient, clock), flower);
         }
     }
 }

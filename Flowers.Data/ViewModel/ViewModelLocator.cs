@@ -1,5 +1,9 @@
+using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using System.Net.Http;
+using Flowers.Api;
 using Flowers.Design;
 using Flowers.Model;
 using GalaSoft.MvvmLight;
@@ -32,6 +36,21 @@ namespace Flowers.ViewModel
             else
             {
                 SimpleIoc.Default.Register<IFlowersService, FlowersService>();
+                SimpleIoc.Default.Register<IClock, Clock>();
+                SimpleIoc.Default.Register<IApiClient>(() =>
+                {
+                    var apiClient = new ApiClient(new HttpClient
+                    {
+                        BaseAddress = new Uri("http://www.galasoft.ch/")
+                    });
+
+                    apiClient.DefaultQueryParameters = new Dictionary<string, string>()
+                    {
+                        { WebConstants.AuthenticationKey, WebConstants.AuthenticationId }
+                    };
+
+                    return apiClient;
+                });
             }
 
             SimpleIoc.Default.Register<MainViewModel>();

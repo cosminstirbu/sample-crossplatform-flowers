@@ -1,86 +1,46 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
-using Newtonsoft.Json;
+using Flowers.Api;
+using Flowers.Api.Requests;
+using GalaSoft.MvvmLight.Ioc;
 
 namespace Flowers.Model
 {
     public class FlowersService : IFlowersService
     {
-        private const string RequestUrl =
-            "http://www.galasoft.ch/labs/Flowers/FlowersService.ashx?{0}={1}&{2}={3}&ticks={4}";
-
-        private HttpClient _httpClient;
+        private IApiClient _apiClient;
         private IClock _clock;
 
-        public FlowersService()
+        public FlowersService(IApiClient apiClient, IClock clock)
         {
-            _httpClient = new HttpClient();
-            _clock = new Clock();
-        }
-
-        public FlowersService(HttpClient httpClient, IClock clock)
-        {
-            _httpClient = httpClient;
+            _apiClient = apiClient;
             _clock = clock;
         }
 
         public async Task<IList<Flower>> Refresh()
         {
-            var url = string.Format(
-                RequestUrl,
-                WebConstants.AuthenticationKey,
-                WebConstants.AuthenticationId,
-                WebConstants.ActionKey,
-                WebConstants.ActionGet,
-                DateTime.Now.Ticks);
+            var flowersResponse = await _apiClient.Execute(new FlowersRequest(_clock.Now().Ticks)).ConfigureAwait(false);
 
-            var json = await _httpClient.GetStringAsync(url);
-
-            var result = JsonConvert.DeserializeObject<FlowersResult>(json);
-
-            foreach (var model in result.Data)
+            foreach (var model in flowersResponse.DeserializedResponse.Data)
             {
                 model.HasChanges = false;
             }
 
-            return result.Data;
+            return flowersResponse.DeserializedResponse.Data;
         }
 
         public async Task<bool> Save(Flower flower)
         {
-            var url = string.Format(
-                RequestUrl,
-                WebConstants.AuthenticationKey,
-                WebConstants.AuthenticationId,
-                WebConstants.ActionKey,
-                WebConstants.ActionSave,
-                _clock.Now().Ticks);
-
-            var json = JsonConvert.SerializeObject(flower);
-
-            var content = new FormUrlEncodedContent(
-                new[]
-                {
-                    new KeyValuePair<string, string>("flower", json)
-                });
-
             try
             {
-                var response = await _httpClient.PostAsync(url, content);
-                if (response.StatusCode == HttpStatusCode.OK)
-                {
-                    flower.HasChanges = false;
-                    return true;
-                }
-                else
-                {
-                    return false;
-                }
+                var saveResponse = await _apiClient.Execute(new SaveFlowerRequest(flower, _clock.Now().Ticks)).ConfigureAwait(false);
+                flower.HasChanges = false;
+
+                return true;
             }
-            catch
+            catch (ApiException)
             {
                 return false;
             }
