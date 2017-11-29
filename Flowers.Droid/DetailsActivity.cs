@@ -3,11 +3,11 @@ using Android.OS;
 using Android.Views;
 using Android.Widget;
 using Flowers.Helpers;
-using Flowers.Model;
 using Flowers.ViewModel;
 using GalaSoft.MvvmLight.Helpers;
 using System.Collections.Generic;
 using System;
+using Flowers.Api.Data;
 
 namespace Flowers
 {

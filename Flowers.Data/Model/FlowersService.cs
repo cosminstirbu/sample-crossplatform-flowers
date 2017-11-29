@@ -1,10 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Net.Http;
+﻿using System.Collections.Generic;
 using System.Threading.Tasks;
 using Flowers.Api;
+using Flowers.Api.Data;
 using Flowers.Api.Requests;
-using GalaSoft.MvvmLight.Ioc;
 
 namespace Flowers.Model
 {

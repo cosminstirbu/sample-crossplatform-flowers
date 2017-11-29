@@ -1,6 +1,6 @@
 using System;
 using System.Globalization;
-using Flowers.Model;
+using Flowers.Api.Data;
 using Flowers.ViewModel;
 using Foundation;
 using GalaSoft.MvvmLight.Helpers;

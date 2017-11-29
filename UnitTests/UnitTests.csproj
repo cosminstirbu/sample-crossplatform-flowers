@@ -81,6 +81,10 @@
       <Project>{89DB52EF-989A-4A0A-A834-877E54E9E016}</Project>
       <Name>Flowers.Data</Name>
     </ProjectReference>
+    <ProjectReference Include="..\Flowers.Api\Flowers.Api.csproj">
+      <Project>{0D46C864-60C5-447D-ABB4-72EDC0987FB2}</Project>
+      <Name>Flowers.Api</Name>
+    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Net.Http;
 using Newtonsoft.Json;
-using Flowers.Model;
+using Flowers.Api.Data;
 
 namespace Flowers.Api.Requests
 {

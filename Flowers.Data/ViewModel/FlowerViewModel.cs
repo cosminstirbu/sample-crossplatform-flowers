@@ -1,5 +1,6 @@
 using System;
 using System.Threading.Tasks;
+using Flowers.Api.Data;
 using Flowers.Design;
 using Flowers.Model;
 using GalaSoft.MvvmLight;
@@ -25,15 +26,6 @@ namespace Flowers.ViewModel
         {
             _flowerService = flowerService;
             Model = model;
-
-            Model.PropertyChanged += (s, e) =>
-            {
-                if (e.PropertyName == nameof(Flower.HasChanges))
-                {
-                    SaveFlowerCommand.RaiseCanExecuteChanged();
-                }
-            };
-
             AddCommentCommand = new RelayCommand(Navigate);
             SaveFlowerCommand = new RelayCommand(async () => await SaveFlower(),
                                                  () => !IsSaving && Model.HasChanges);

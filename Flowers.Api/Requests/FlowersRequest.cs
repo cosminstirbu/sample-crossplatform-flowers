@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Net.Http;
 
-using Flowers.Model;
+using Flowers.Api.Data;
 
 namespace Flowers.Api.Requests
 {

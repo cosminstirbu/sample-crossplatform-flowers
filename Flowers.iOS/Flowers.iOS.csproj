@@ -151,6 +151,10 @@
       <Project>{89db52ef-989a-4a0a-a834-877e54e9e016}</Project>
       <Name>Flowers.Data</Name>
     </ProjectReference>
+    <ProjectReference Include="..\Flowers.Api\Flowers.Api.csproj">
+      <Project>{0D46C864-60C5-447D-ABB4-72EDC0987FB2}</Project>
+      <Name>Flowers.Api</Name>
+    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <XamarinComponentReference Include="sdwebimage">

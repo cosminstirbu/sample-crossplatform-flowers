@@ -44,7 +44,7 @@ namespace Flowers.ViewModel
                         BaseAddress = new Uri("http://www.galasoft.ch/")
                     });
 
-                    apiClient.DefaultQueryParameters = new Dictionary<string, string>()
+                    apiClient.DefaultQueryParameters = new Dictionary<string, string>
                     {
                         { WebConstants.AuthenticationKey, WebConstants.AuthenticationId }
                     };

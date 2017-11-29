@@ -1,7 +1,7 @@
 ﻿using System;
 using Newtonsoft.Json;
 
-namespace Flowers.Model
+namespace Flowers.Api.Data
 {
     public class Comment
     {

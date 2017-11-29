@@ -1,17 +1,12 @@
 ﻿using System;
 using System.Collections.ObjectModel;
 using System.Linq;
-using GalaSoft.MvvmLight;
 using Newtonsoft.Json;
 
-namespace Flowers.Model
+namespace Flowers.Api.Data
 {
-    public class Flower : ObservableObject
+    public class Flower
     {
-        private string _description;
-        private bool _hasChanges;
-        private string _name;
-
         public Flower()
         {
             Comments = new ObservableCollection<Comment>();
@@ -19,8 +14,8 @@ namespace Flowers.Model
 
         public bool HasChanges
         {
-            get { return _hasChanges; }
-            set { Set(ref _hasChanges, value); }
+            get;
+            set;
         }
 
         [JsonProperty("comments")]
@@ -29,14 +24,8 @@ namespace Flowers.Model
         [JsonProperty("description")]
         public string Description
         {
-            get { return _description; }
-            set
-            {
-                if (Set(ref _description, value))
-                {
-                    HasChanges = true;
-                };
-            }
+            get;
+            set;
         }
 
         [JsonProperty("id")]
@@ -48,14 +37,8 @@ namespace Flowers.Model
         [JsonProperty("name")]
         public string Name
         {
-            get { return _name; }
-            set
-            {
-                if (Set(ref _name, value))
-                {
-                    HasChanges = true;
-                };
-            }
+            get;
+            set;
         }
 
         public void AddComment(string comment)

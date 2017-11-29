@@ -13,6 +13,7 @@ using FluentAssertions;
 using GalaSoft.MvvmLight.Ioc;
 using UnitTests.Http;
 using Flowers.Api;
+using Flowers.Api.Data;
 
 namespace UnitTests.ViewModels
 {
